@@ -39,8 +39,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        User userDB = userRepository.findUserByUsername(user.getUsername());
+        if (userDB == null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+        }
     }
 
     @Override
@@ -52,7 +55,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateUser(Long id, User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getPassword().isEmpty()) {
+            user.setPassword(userRepository.findById(user.getId()).get().getPassword());
+        } else {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         User userToBeUpdate = showUser(id);
         userToBeUpdate.setUsername(user.getUsername());
         userToBeUpdate.setPassword(user.getPassword());
